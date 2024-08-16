@@ -1,30 +1,15 @@
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-require("dotenv").config();
+const { MongoClient, ServerApiVersion } = require("mongodb");
 const express = require("express");
 const cors = require("cors");
-const jwt = require("jsonwebtoken");
-const cookieParser = require("cookie-parser");
-const bcrypt = require("bcryptjs");
-
 const app = express();
 const port = process.env.PORT || 5000;
 
-const corsOptions = {
-  origin: [
-    "http://localhost:5173",
-    "*",
-    "https://assignment-eleven-ha.netlify.app",
-  ],
-  credentials: true,
-};
+require("dotenv").config();
 
-app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
 app.use(express.json());
-app.use(cookieParser());
+app.use(cors());
 
 const uri = process.env.MONGO_URI;
-
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -33,34 +18,63 @@ const client = new MongoClient(uri, {
   },
 });
 
+const productCollectionName = "products";
+let productCollection;
 
-
-
-const productCollection = client.db("product_db").collection("products");
-
-async function run() {
+async function connectToDatabase() {
   try {
-    // await client.connect();
-
-   
-
-
-
-
-
-
-
-  } finally {
-    // await client.close();
+    await client.connect();
+    console.log("Connected to MongoDB");
+    const database = client.db("product_db");
+    productCollection = database.collection(productCollectionName);
+  } catch (error) {
+    console.error("Error connecting to MongoDB:", error);
+    throw error;
   }
 }
 
-// run().catch(console.dir);
+// Connect to the database once when the server starts
+connectToDatabase().catch(console.error);
+
+// Get products with query parameters for search, filter, sort, and pagination
+app.get('/api/products', async (req, res) => {
+  const { search, category, brand, priceRange, sort, page = 1, limit = 8 } = req.query;
+
+  try {
+    const query = {};
+    if (search) query.productName = { $regex: search, $options: 'i' };
+    if (category) query.category = category;
+    if (brand) query.brand = brand;
+    if (priceRange) {
+      if (priceRange === 'low') query.price = { $lt: 50 };
+      else if (priceRange === 'medium') query.price = { $gte: 50, $lt: 100 };
+      else if (priceRange === 'high') query.price = { $gte: 100 };
+    }
+    console.log(query)
+    const sortOptions = {};
+    if (sort === 'priceLowToHigh') sortOptions.price = 1;
+    else if (sort === 'priceHighToLow') sortOptions.price = -1;
+    else if (sort === 'newestFirst') sortOptions.createdAt = -1;
+
+    const skip = (page - 1) * limit;
+
+    const products = await productCollection.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit))
+      .toArray(); // Make sure to await this to retrieve the array
+
+    res.json(products);
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 
 app.get("/", (req, res) => {
-  res.send("Hello World!");
+  res.send("Server is running");
 });
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+  console.log(`Server is running on http://localhost:${port}`);
 });
