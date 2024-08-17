@@ -50,7 +50,7 @@ app.get("/api/products", async (req, res) => {
       else if (priceRange === "medium") query.price = { $gte: 500, $lt: 1000 };
       else if (priceRange === "high") query.price = { $gte: 1000 };
     }
-
+console.log(category);
     const sortOptions = {};
     if (sort === "LowToHigh") sortOptions.price = 1;
     else if (sort === "HighToLow") sortOptions.price = -1;
@@ -78,9 +78,11 @@ app.get("/api/products", async (req, res) => {
       const brands = [...new Set(product.map(product => product.brand))];
       console.log(brands);
 
+      // Get All Categories
+      const categories = [...new Set(product.map(product => product.category))];
 
     // Return the products, total pages, and available brands
-    res.json({ products, totalPages, brands });
+    res.json({ products, totalPages, brands, categories });
   } catch (error) {
     console.error("Error fetching products:", error);
     res.status(500).json({ error: "Internal Server Error" });
