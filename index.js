@@ -46,9 +46,9 @@ app.get('/api/products', async (req, res) => {
     if (category) query.category = category;
     if (brand) query.brand = brand;
     if (priceRange) {
-      if (priceRange === 'low') query.price = { $lt: 50 };
-      else if (priceRange === 'medium') query.price = { $gte: 50, $lt: 100 };
-      else if (priceRange === 'high') query.price = { $gte: 100 };
+      if (priceRange === 'low') query.price = { $lt: 500 };
+      else if (priceRange === 'medium') query.price = { $gte: 500, $lt: 1000 };
+      else if (priceRange === 'high') query.price = { $gte: 1000 };
     }
     console.log(query)
     const sortOptions = {};
