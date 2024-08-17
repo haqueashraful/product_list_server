@@ -65,7 +65,7 @@ app.get("/api/products", async (req, res) => {
     const sortOptions = {};
     if (sort === "LowToHigh") sortOptions.price = 1;
     else if (sort === "HighToLow") sortOptions.price = -1;
-    else if (sort === "newestFirst") sortOptions.createdAt = -1;
+    else if (sort === "newestFirst") sortOptions.createdTime = -1;
 
     const skip = (page - 1) * limit;
 
