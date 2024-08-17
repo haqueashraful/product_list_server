@@ -3,11 +3,19 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 const port = process.env.PORT || 5000;
-
 require("dotenv").config();
 
+const corsOptions = {
+  origin: ["http://localhost:5173", "https://employeecare-ha.netlify.app"],
+  credentials: true,
+};
+
+
 app.use(express.json());
-app.use(cors());
+app.options("*", cors(corsOptions));
+app.use(cors(corsOptions));
+
+
 
 const uri = process.env.MONGO_URI;
 const client = new MongoClient(uri, {
@@ -23,7 +31,7 @@ let productCollection;
 
 async function connectToDatabase() {
   try {
-    await client.connect();
+    // await client.connect();
     console.log("Connected to MongoDB");
     const database = client.db("product_db");
     productCollection = database.collection(productCollectionName);
