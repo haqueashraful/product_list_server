@@ -6,7 +6,7 @@ const port = process.env.PORT || 5000;
 require("dotenv").config();
 
 const corsOptions = {
-  origin: ["http://localhost:5173", "https://employeecare-ha.netlify.app"],
+  origin: ["http://localhost:5173", "https://product-list-ha.netlify.app"],
   credentials: true,
 };
 
