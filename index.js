@@ -58,13 +58,16 @@ app.get('/api/products', async (req, res) => {
 
     const skip = (page - 1) * limit;
 
+    const productsCount = await productCollection.countDocuments(query);
+    const totalPages = Math.ceil(productsCount / parseInt(limit));
+
     const products = await productCollection.find(query)
       .sort(sortOptions)
       .skip(skip)
       .limit(parseInt(limit))
-      .toArray(); // Make sure to await this to retrieve the array
+      .toArray(); 
 
-    res.json(products);
+    res.json({products, totalPages});
   } catch (error) {
     console.error("Error fetching products:", error);
     res.status(500).json({ error: "Internal Server Error" });
