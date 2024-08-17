@@ -10,12 +10,9 @@ const corsOptions = {
   credentials: true,
 };
 
-
 app.use(express.json());
 app.options("*", cors(corsOptions));
 app.use(cors(corsOptions));
-
-
 
 const uri = process.env.MONGO_URI;
 const client = new MongoClient(uri, {
@@ -41,12 +38,19 @@ async function connectToDatabase() {
   }
 }
 
-// Connect to the database once when the server starts
 connectToDatabase().catch(console.error);
 
 // Get products with query parameters for search, filter, sort, and pagination
 app.get("/api/products", async (req, res) => {
-  const { search, category, brand, priceRange, sort, page = 1, limit = 8 } = req.query;
+  const {
+    search,
+    category,
+    brand,
+    priceRange,
+    sort,
+    page = 1,
+    limit = 8,
+  } = req.query;
 
   try {
     const query = {};
@@ -58,7 +62,6 @@ app.get("/api/products", async (req, res) => {
       else if (priceRange === "medium") query.price = { $gte: 500, $lt: 1000 };
       else if (priceRange === "high") query.price = { $gte: 1000 };
     }
-console.log(category);
     const sortOptions = {};
     if (sort === "LowToHigh") sortOptions.price = 1;
     else if (sort === "HighToLow") sortOptions.price = -1;
@@ -78,16 +81,13 @@ console.log(category);
       .limit(parseInt(limit))
       .toArray();
 
+    // Get the available brands
 
+    const product = await productCollection.find().toArray();
+    const brands = [...new Set(product.map((product) => product.brand))];
 
-      // Get the available brands
-
-      const product = await productCollection.find().toArray();
-      const brands = [...new Set(product.map(product => product.brand))];
-      console.log(brands);
-
-      // Get All Categories
-      const categories = [...new Set(product.map(product => product.category))];
+    // Get All Categories
+    const categories = [...new Set(product.map((product) => product.category))];
 
     // Return the products, total pages, and available brands
     res.json({ products, totalPages, brands, categories });
